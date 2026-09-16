@@ -2,6 +2,8 @@
 
 use App\Presentation\Http\Controllers\Organizer\AuthController;
 use App\Presentation\Http\Controllers\Organizer\EventController;
+use App\Presentation\Http\Controllers\Organizer\PromoterController;
+use App\Presentation\Http\Controllers\Organizer\VenueController;
 use App\Presentation\Http\Controllers\SuperAdmin\OrganizerApprovalController;
 use Illuminate\Support\Facades\Route;
 
@@ -20,5 +22,18 @@ Route::prefix('organizer')->group(function (): void {
         Route::post('events/{event}/duplicate', [EventController::class, 'duplicate']);
         Route::delete('events/{event}', [EventController::class, 'destroy']);
         Route::post('events/{event}/status', [EventController::class, 'transitionStatus']);
+        Route::get('events/{event}/promoters', [PromoterController::class, 'eventPromoters']);
+
+        Route::get('venue', [VenueController::class, 'show']);
+        Route::put('venue', [VenueController::class, 'update']);
+        Route::get('venue/agenda', [VenueController::class, 'agenda']);
+        Route::get('venue/history', [VenueController::class, 'history']);
+
+        Route::get('promoters', [PromoterController::class, 'index']);
+        Route::post('promoters', [PromoterController::class, 'store']);
+        Route::put('promoters/{promoter}', [PromoterController::class, 'update']);
+        Route::delete('promoters/{promoter}', [PromoterController::class, 'destroy']);
+        Route::post('promoters/{promoter}/events/{event}', [PromoterController::class, 'link']);
+        Route::delete('promoters/{promoter}/events/{event}', [PromoterController::class, 'unlink']);
     });
 });
