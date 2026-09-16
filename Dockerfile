@@ -15,6 +15,10 @@ RUN composer dump-autoload --optimize
 # by overriding the container command in docker-compose.yml.
 FROM php:8.4-fpm AS runtime
 
+RUN apt-get update && apt-get install -y --no-install-recommends libpq-dev \
+    && docker-php-ext-install pdo_pgsql \
+    && rm -rf /var/lib/apt/lists/*
+
 WORKDIR /var/www/html
 
 COPY --from=vendor /app /var/www/html
