@@ -28,6 +28,5 @@ final class Event
         public readonly ?string $eventRules,
         public readonly EventStatus $status,
         public readonly ?DateTimeImmutable $publishedAt,
-    ) {
-    }
+    ) {}
 }

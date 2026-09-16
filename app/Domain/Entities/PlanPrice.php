@@ -14,6 +14,5 @@ final class PlanPrice
         public readonly DateTimeImmutable $effectiveFrom,
         public readonly ?DateTimeImmutable $effectiveTo,
         public readonly int $setBySuperAdminId,
-    ) {
-    }
+    ) {}
 }
