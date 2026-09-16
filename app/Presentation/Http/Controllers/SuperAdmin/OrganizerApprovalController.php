@@ -43,8 +43,6 @@ class OrganizerApprovalController extends Controller
 
     public function reject(RejectOrganizerRequest $request, int $organizer): JsonResponse
     {
-        abort_unless($this->policy->reject($request->user('super_admin')), 403);
-
         return response()->json([
             'data' => $this->toResponse($this->rejectOrganizer->handle($organizer, $request->validated('reason'))),
         ]);

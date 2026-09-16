@@ -79,5 +79,24 @@ class OrganizerApprovalTest extends TestCase
         $response = $this->actingAs($organizer, 'organizer')
             ->postJson("/api/admin/v1/super-admin/organizers/{$target->id}/approve");
         $response->assertForbidden();
+
+        $response = $this->actingAs($organizer, 'organizer')
+            ->postJson("/api/admin/v1/super-admin/organizers/{$target->id}/reject");
+        $response->assertForbidden();
+    }
+
+    #[Test]
+    #[TestDox('GIVEN an organizer, not a super admin, WHEN rejecting with an invalid payload THEN the response is still 403, not a validation error')]
+    public function it_denies_a_non_super_admin_before_validating_the_reject_payload(): void
+    {
+        $organizer = Organizer::factory()->approved()->create();
+        $target = Organizer::factory()->pending()->create();
+
+        $response = $this->actingAs($organizer, 'organizer')
+            ->postJson("/api/admin/v1/super-admin/organizers/{$target->id}/reject", [
+                'reason' => str_repeat('x', 1001),
+            ]);
+
+        $response->assertForbidden();
     }
 }
