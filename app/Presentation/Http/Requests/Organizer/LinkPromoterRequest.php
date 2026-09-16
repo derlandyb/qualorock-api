@@ -3,30 +3,20 @@
 namespace App\Presentation\Http\Requests\Organizer;
 
 use App\Application\Policies\EventPolicy;
-use App\Application\Policies\PromoterPolicy;
 use App\Domain\Contracts\EventRepositoryInterface;
-use App\Domain\Contracts\PromoterRepositoryInterface;
 use App\Domain\Entities\Event;
-use App\Domain\Entities\Promoter;
-use Illuminate\Foundation\Http\FormRequest;
 
-class LinkPromoterRequest extends FormRequest
+class LinkPromoterRequest extends OrganizerOwnedPromoterRequest
 {
-    private ?Promoter $resolvedPromoter = null;
-
-    private bool $promoterResolved = false;
-
     private ?Event $resolvedEvent = null;
 
     private bool $eventResolved = false;
 
     public function authorize(): bool
     {
-        $promoter = $this->promoter();
         $event = $this->event();
 
-        return $promoter !== null && $event !== null
-            && app(PromoterPolicy::class)->owns($this->user('organizer'), $promoter)
+        return parent::authorize() && $event !== null
             && app(EventPolicy::class)->owns($this->user('organizer'), $event);
     }
 
@@ -36,16 +26,6 @@ class LinkPromoterRequest extends FormRequest
     public function rules(): array
     {
         return [];
-    }
-
-    public function promoter(): ?Promoter
-    {
-        if (! $this->promoterResolved) {
-            $this->resolvedPromoter = app(PromoterRepositoryInterface::class)->findById((int) $this->route('promoter'));
-            $this->promoterResolved = true;
-        }
-
-        return $this->resolvedPromoter;
     }
 
     public function event(): ?Event

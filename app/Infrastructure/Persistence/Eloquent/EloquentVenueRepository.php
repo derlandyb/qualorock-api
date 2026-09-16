@@ -3,9 +3,9 @@
 namespace App\Infrastructure\Persistence\Eloquent;
 
 use App\Domain\Contracts\VenueRepositoryInterface;
-use App\Domain\Entities\Event as EventEntity;
 use App\Domain\Entities\Venue as VenueEntity;
 use App\Domain\Enums\EventStatus;
+use App\Infrastructure\Persistence\Eloquent\Mappers\EventEntityMapper;
 
 class EloquentVenueRepository implements VenueRepositoryInterface
 {
@@ -38,7 +38,7 @@ class EloquentVenueRepository implements VenueRepositoryInterface
             ->where('date_time', '>=', now())
             ->orderBy('date_time')
             ->get()
-            ->map(fn (Event $model) => $this->toEventEntity($model))
+            ->map(fn (Event $model) => EventEntityMapper::toEntity($model))
             ->all();
     }
 
@@ -51,7 +51,7 @@ class EloquentVenueRepository implements VenueRepositoryInterface
             })
             ->orderBy('date_time', 'desc')
             ->get()
-            ->map(fn (Event $model) => $this->toEventEntity($model))
+            ->map(fn (Event $model) => EventEntityMapper::toEntity($model))
             ->all();
     }
 
@@ -65,31 +65,6 @@ class EloquentVenueRepository implements VenueRepositoryInterface
             address: $model->address,
             contactInfo: $model->contact_info,
             imageUrl: $model->image_url,
-        );
-    }
-
-    private function toEventEntity(Event $model): EventEntity
-    {
-        return new EventEntity(
-            id: $model->id,
-            organizerId: $model->organizer_id,
-            venueId: $model->venue_id,
-            title: $model->title,
-            description: $model->description,
-            dateTime: $model->date_time->toImmutable(),
-            location: $model->location,
-            fullAddress: $model->full_address,
-            featuredImageUrl: $model->featured_image_url,
-            externalTicketLink: $model->external_ticket_link,
-            priceType: $model->price_type,
-            musicCategory: $model->music_category,
-            capacity: $model->capacity,
-            ageRange: $model->age_range,
-            additionalInfo: $model->additional_info,
-            accessibilityInfo: $model->accessibility_info,
-            eventRules: $model->event_rules,
-            status: $model->status,
-            publishedAt: $model->published_at?->toImmutable(),
         );
     }
 }
