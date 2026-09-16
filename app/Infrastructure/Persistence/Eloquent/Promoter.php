@@ -2,7 +2,9 @@
 
 namespace App\Infrastructure\Persistence\Eloquent;
 
+use Database\Factories\PromoterFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -10,6 +12,13 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 #[Fillable(['organizer_id', 'name', 'phone', 'email', 'instagram_url', 'tiktok_url'])]
 class Promoter extends Model
 {
+    use HasFactory;
+
+    protected static function newFactory(): PromoterFactory
+    {
+        return PromoterFactory::new();
+    }
+
     public function organizer(): BelongsTo
     {
         return $this->belongsTo(Organizer::class);
