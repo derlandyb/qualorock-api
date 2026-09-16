@@ -1,0 +1,74 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  lint:
+    name: lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          tools: composer:2
+          extensions: pdo_pgsql, pgsql, bcmath, intl, zip
+      - run: composer install --no-interaction --prefer-dist
+      - run: vendor/bin/pint --test
+
+  test:
+    name: test
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: qualorock_test
+          POSTGRES_USER: qualorock_test
+          POSTGRES_PASSWORD: qualorock_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U qualorock_test -d qualorock_test"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 20
+    env:
+      APP_ENV: testing
+      DB_CONNECTION: pgsql
+      DB_HOST: 127.0.0.1
+      DB_PORT: 5432
+      DB_DATABASE: qualorock_test
+      DB_USERNAME: qualorock_test
+      DB_PASSWORD: qualorock_test
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          tools: composer:2
+          extensions: pdo_pgsql, pgsql, bcmath, intl, zip, pcov
+          coverage: pcov
+      - run: composer install --no-interaction --prefer-dist
+      - run: cp .env.example .env
+      - run: php artisan key:generate
+      - run: php artisan migrate --force
+      # No --min coverage threshold yet: AD-010's ≥80% gate applies once Application/
+      # Presentation-layer logic exists to cover. Phase 1 (admin-panel data models) is
+      # migrations/models only, explicitly "Tests: none" per its own Test Coverage Matrix -
+      # a hard 80% gate today would fail every PR in this layer by design, not by defect.
+      - run: php artisan test --coverage
+
+  quality-gate:
+    name: quality-gate
+    if: always()
+    needs: [lint, test]
+    runs-on: ubuntu-latest
+    steps:
+      - run: test "${{ needs.lint.result }}" = success && test "${{ needs.test.result }}" = success
