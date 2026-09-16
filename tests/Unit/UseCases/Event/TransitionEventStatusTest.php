@@ -2,10 +2,12 @@
 
 namespace Tests\Unit\UseCases\Event;
 
+use App\Application\Services\PublishedEventCounter;
 use App\Application\UseCases\Event\TransitionEventStatus;
 use App\Domain\Entities\Event;
 use App\Domain\Enums\EventPriceType;
 use App\Domain\Enums\EventStatus;
+use App\Domain\Enums\PlanTier;
 use App\Domain\Exceptions\EventMissingRequiredFieldsForPublishException;
 use App\Domain\Exceptions\InvalidEventStatusTransitionException;
 use DateTimeImmutable;
@@ -23,10 +25,10 @@ class TransitionEventStatusTest extends TestCase
         $repository = new FakeEventRepository;
         $event = $repository->create($this->makeEvent(featuredImageUrl: ''));
 
-        $useCase = new TransitionEventStatus($repository);
+        $useCase = new TransitionEventStatus($repository, new PublishedEventCounter($repository));
 
         try {
-            $useCase->handle($event, EventStatus::Published);
+            $useCase->handle($event, EventStatus::Published, PlanTier::Plus);
             $this->fail('Expected EventMissingRequiredFieldsForPublishException to be thrown.');
         } catch (EventMissingRequiredFieldsForPublishException $exception) {
             $this->assertSame(['featuredImageUrl'], $exception->missingFields);
@@ -40,11 +42,11 @@ class TransitionEventStatusTest extends TestCase
         $repository = new FakeEventRepository;
         $event = $repository->create($this->makeEvent(status: EventStatus::Cancelled));
 
-        $useCase = new TransitionEventStatus($repository);
+        $useCase = new TransitionEventStatus($repository, new PublishedEventCounter($repository));
 
         $this->expectException(InvalidEventStatusTransitionException::class);
 
-        $useCase->handle($event, EventStatus::Published);
+        $useCase->handle($event, EventStatus::Published, PlanTier::Plus);
     }
 
     #[Test]
@@ -54,8 +56,8 @@ class TransitionEventStatusTest extends TestCase
         $repository = new FakeEventRepository;
         $event = $repository->create($this->makeEvent());
 
-        $useCase = new TransitionEventStatus($repository);
-        $updated = $useCase->handle($event, EventStatus::Published);
+        $useCase = new TransitionEventStatus($repository, new PublishedEventCounter($repository));
+        $updated = $useCase->handle($event, EventStatus::Published, PlanTier::Plus);
 
         $this->assertSame(EventStatus::Published, $updated->status);
         $this->assertNotNull($updated->publishedAt);

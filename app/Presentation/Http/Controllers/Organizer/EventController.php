@@ -8,6 +8,7 @@ use App\Application\UseCases\Event\DuplicateEvent;
 use App\Application\UseCases\Event\TransitionEventStatus;
 use App\Application\UseCases\Event\UpdateEvent;
 use App\Domain\Entities\Event;
+use App\Domain\Exceptions\BasicTierPublishCapExceededException;
 use App\Domain\Exceptions\EventMissingRequiredFieldsForPublishException;
 use App\Domain\Exceptions\InvalidEventStatusTransitionException;
 use App\Http\Controllers\Controller;
@@ -59,7 +60,11 @@ class EventController extends Controller
     public function transitionStatus(TransitionEventStatusRequest $request): JsonResponse
     {
         try {
-            $event = $this->transitionEventStatus->handle($request->event(), $request->targetStatus());
+            $event = $this->transitionEventStatus->handle(
+                $request->event(),
+                $request->targetStatus(),
+                $request->user('organizer')->plan_tier,
+            );
         } catch (InvalidEventStatusTransitionException) {
             return response()->json(['error' => 'invalid_transition'], 422);
         } catch (EventMissingRequiredFieldsForPublishException $exception) {
@@ -67,6 +72,8 @@ class EventController extends Controller
                 'error' => 'missing_required_fields',
                 'missingFields' => $exception->missingFields,
             ], 422);
+        } catch (BasicTierPublishCapExceededException) {
+            return response()->json(['error' => 'upgrade_required'], 422);
         }
 
         return response()->json(['data' => $this->toResponse($event)]);
