@@ -5,7 +5,6 @@ namespace App\Infrastructure\Persistence\Eloquent;
 use App\Domain\Contracts\OrganizerRepositoryInterface;
 use App\Domain\Entities\Organizer as OrganizerEntity;
 use App\Domain\Enums\OrganizerApprovalState;
-use Illuminate\Support\Collection;
 
 class EloquentOrganizerRepository implements OrganizerRepositoryInterface
 {
@@ -23,11 +22,12 @@ class EloquentOrganizerRepository implements OrganizerRepositoryInterface
         return $model ? $this->toEntity($model) : null;
     }
 
-    public function findByApprovalState(OrganizerApprovalState $state): Collection
+    public function findByApprovalState(OrganizerApprovalState $state): array
     {
         return Organizer::where('approval_state', $state->value)
             ->get()
-            ->map(fn (Organizer $model) => $this->toEntity($model));
+            ->map(fn (Organizer $model) => $this->toEntity($model))
+            ->all();
     }
 
     public function create(OrganizerEntity $organizer): OrganizerEntity

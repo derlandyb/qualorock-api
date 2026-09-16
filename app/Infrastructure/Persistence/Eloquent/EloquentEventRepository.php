@@ -4,7 +4,6 @@ namespace App\Infrastructure\Persistence\Eloquent;
 
 use App\Domain\Contracts\EventRepositoryInterface;
 use App\Domain\Entities\Event as EventEntity;
-use Illuminate\Support\Collection;
 
 class EloquentEventRepository implements EventRepositoryInterface
 {
@@ -15,11 +14,12 @@ class EloquentEventRepository implements EventRepositoryInterface
         return $model ? $this->toEntity($model) : null;
     }
 
-    public function findByOrganizerId(int $organizerId): Collection
+    public function findByOrganizerId(int $organizerId): array
     {
         return Event::where('organizer_id', $organizerId)
             ->get()
-            ->map(fn (Event $model) => $this->toEntity($model));
+            ->map(fn (Event $model) => $this->toEntity($model))
+            ->all();
     }
 
     public function create(EventEntity $event): EventEntity

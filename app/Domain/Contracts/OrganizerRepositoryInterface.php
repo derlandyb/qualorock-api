@@ -4,7 +4,6 @@ namespace App\Domain\Contracts;
 
 use App\Domain\Entities\Organizer;
 use App\Domain\Enums\OrganizerApprovalState;
-use Illuminate\Support\Collection;
 
 interface OrganizerRepositoryInterface
 {
@@ -13,9 +12,9 @@ interface OrganizerRepositoryInterface
     public function findByEmail(string $email): ?Organizer;
 
     /**
-     * @return Collection<int, Organizer>
+     * @return array<int, Organizer>
      */
-    public function findByApprovalState(OrganizerApprovalState $state): Collection;
+    public function findByApprovalState(OrganizerApprovalState $state): array;
 
     public function create(Organizer $organizer): Organizer;
 

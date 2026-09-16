@@ -3,16 +3,15 @@
 namespace App\Domain\Contracts;
 
 use App\Domain\Entities\Event;
-use Illuminate\Support\Collection;
 
 interface EventRepositoryInterface
 {
     public function findById(int $id): ?Event;
 
     /**
-     * @return Collection<int, Event>
+     * @return array<int, Event>
      */
-    public function findByOrganizerId(int $organizerId): Collection;
+    public function findByOrganizerId(int $organizerId): array;
 
     public function create(Event $event): Event;
 
