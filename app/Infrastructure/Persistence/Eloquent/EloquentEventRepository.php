@@ -4,6 +4,8 @@ namespace App\Infrastructure\Persistence\Eloquent;
 
 use App\Domain\Contracts\EventRepositoryInterface;
 use App\Domain\Entities\Event as EventEntity;
+use App\Domain\Enums\EventStatus;
+use DateTimeImmutable;
 
 class EloquentEventRepository implements EventRepositoryInterface
 {
@@ -59,6 +61,14 @@ class EloquentEventRepository implements EventRepositoryInterface
     public function delete(int $id): void
     {
         Event::findOrFail($id)->delete();
+    }
+
+    public function countPublishedBetween(int $organizerId, DateTimeImmutable $start, DateTimeImmutable $end): int
+    {
+        return Event::where('organizer_id', $organizerId)
+            ->where('status', EventStatus::Published)
+            ->whereBetween('published_at', [$start, $end])
+            ->count();
     }
 
     private function toEntity(Event $model): EventEntity

@@ -2,7 +2,9 @@
 
 namespace App\Providers;
 
+use App\Domain\Contracts\EventRepositoryInterface;
 use App\Domain\Contracts\OrganizerRepositoryInterface;
+use App\Infrastructure\Persistence\Eloquent\EloquentEventRepository;
 use App\Infrastructure\Persistence\Eloquent\EloquentOrganizerRepository;
 use Illuminate\Support\ServiceProvider;
 
@@ -14,6 +16,7 @@ class AppServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->app->bind(OrganizerRepositoryInterface::class, EloquentOrganizerRepository::class);
+        $this->app->bind(EventRepositoryInterface::class, EloquentEventRepository::class);
     }
 
     /**

@@ -4,7 +4,9 @@ namespace App\Infrastructure\Persistence\Eloquent;
 
 use App\Domain\Enums\EventPriceType;
 use App\Domain\Enums\EventStatus;
+use Database\Factories\EventFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
@@ -15,6 +17,13 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 ])]
 class Event extends Model
 {
+    use HasFactory;
+
+    protected static function newFactory(): EventFactory
+    {
+        return EventFactory::new();
+    }
+
     protected function casts(): array
     {
         return [

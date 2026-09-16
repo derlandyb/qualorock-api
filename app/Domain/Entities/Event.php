@@ -29,4 +29,34 @@ final class Event
         public readonly EventStatus $status,
         public readonly ?DateTimeImmutable $publishedAt,
     ) {}
+
+    public function canTransitionTo(EventStatus $target): bool
+    {
+        return match ($this->status) {
+            EventStatus::Draft => in_array($target, [EventStatus::Published, EventStatus::Cancelled], true),
+            EventStatus::Published => in_array($target, [EventStatus::Cancelled, EventStatus::Closed], true),
+            default => false,
+        };
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    public function missingFieldsForPublish(): array
+    {
+        $requiredStringFields = [
+            'title' => $this->title,
+            'description' => $this->description,
+            'location' => $this->location,
+            'fullAddress' => $this->fullAddress,
+            'featuredImageUrl' => $this->featuredImageUrl,
+            'externalTicketLink' => $this->externalTicketLink,
+            'musicCategory' => $this->musicCategory,
+        ];
+
+        return array_keys(array_filter(
+            $requiredStringFields,
+            fn (string $value): bool => trim($value) === '',
+        ));
+    }
 }
