@@ -3,6 +3,7 @@
 namespace App\Domain\Contracts;
 
 use App\Domain\Entities\Event;
+use DateTimeImmutable;
 
 interface EventRepositoryInterface
 {
@@ -18,4 +19,6 @@ interface EventRepositoryInterface
     public function update(int $id, array $attributes): Event;
 
     public function delete(int $id): void;
+
+    public function countPublishedBetween(int $organizerId, DateTimeImmutable $start, DateTimeImmutable $end): int;
 }
