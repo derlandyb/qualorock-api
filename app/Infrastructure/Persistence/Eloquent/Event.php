@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 #[Fillable([
     'organizer_id', 'venue_id', 'title', 'description', 'date_time', 'location', 'full_address',
@@ -42,5 +43,10 @@ class Event extends Model
     public function venue(): BelongsTo
     {
         return $this->belongsTo(Venue::class);
+    }
+
+    public function promoters(): BelongsToMany
+    {
+        return $this->belongsToMany(Promoter::class, 'event_promoter');
     }
 }

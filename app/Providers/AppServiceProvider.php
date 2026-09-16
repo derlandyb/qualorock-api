@@ -4,8 +4,12 @@ namespace App\Providers;
 
 use App\Domain\Contracts\EventRepositoryInterface;
 use App\Domain\Contracts\OrganizerRepositoryInterface;
+use App\Domain\Contracts\PromoterRepositoryInterface;
+use App\Domain\Contracts\VenueRepositoryInterface;
 use App\Infrastructure\Persistence\Eloquent\EloquentEventRepository;
 use App\Infrastructure\Persistence\Eloquent\EloquentOrganizerRepository;
+use App\Infrastructure\Persistence\Eloquent\EloquentPromoterRepository;
+use App\Infrastructure\Persistence\Eloquent\EloquentVenueRepository;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -17,6 +21,8 @@ class AppServiceProvider extends ServiceProvider
     {
         $this->app->bind(OrganizerRepositoryInterface::class, EloquentOrganizerRepository::class);
         $this->app->bind(EventRepositoryInterface::class, EloquentEventRepository::class);
+        $this->app->bind(VenueRepositoryInterface::class, EloquentVenueRepository::class);
+        $this->app->bind(PromoterRepositoryInterface::class, EloquentPromoterRepository::class);
     }
 
     /**
