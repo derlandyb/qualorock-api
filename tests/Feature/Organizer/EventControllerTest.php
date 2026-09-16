@@ -88,6 +88,108 @@ class EventControllerTest extends TestCase
     }
 
     #[Test]
+    #[TestDox('GIVEN a published event WHEN transitioning to cancelled THEN it succeeds')]
+    public function it_allows_transitioning_a_published_event_to_cancelled(): void
+    {
+        $organizer = Organizer::factory()->approved()->create();
+        $event = Event::factory()->for($organizer, 'organizer')->published()->create();
+
+        $response = $this->actingAsApprovedOrganizer($organizer)
+            ->postJson("/api/admin/v1/organizer/events/{$event->id}/status", ['status' => 'cancelled']);
+
+        $response->assertOk();
+        $response->assertJsonFragment(['status' => 'cancelled']);
+    }
+
+    #[Test]
+    #[TestDox('GIVEN a published event WHEN transitioning to closed THEN it succeeds')]
+    public function it_allows_transitioning_a_published_event_to_closed(): void
+    {
+        $organizer = Organizer::factory()->approved()->create();
+        $event = Event::factory()->for($organizer, 'organizer')->published()->create();
+
+        $response = $this->actingAsApprovedOrganizer($organizer)
+            ->postJson("/api/admin/v1/organizer/events/{$event->id}/status", ['status' => 'closed']);
+
+        $response->assertOk();
+        $response->assertJsonFragment(['status' => 'closed']);
+    }
+
+    #[Test]
+    #[TestDox('GIVEN a draft event WHEN transitioning to cancelled THEN it succeeds')]
+    public function it_allows_transitioning_a_draft_event_to_cancelled(): void
+    {
+        $organizer = Organizer::factory()->approved()->create();
+        $event = Event::factory()->for($organizer, 'organizer')->draft()->create();
+
+        $response = $this->actingAsApprovedOrganizer($organizer)
+            ->postJson("/api/admin/v1/organizer/events/{$event->id}/status", ['status' => 'cancelled']);
+
+        $response->assertOk();
+        $response->assertJsonFragment(['status' => 'cancelled']);
+    }
+
+    #[Test]
+    #[TestDox('GIVEN a required field is missing WHEN attempting to transition to published THEN the response is 422 with the missing fields identified')]
+    public function it_rejects_publishing_an_event_with_a_missing_required_field_over_http(): void
+    {
+        $organizer = Organizer::factory()->approved()->create();
+        $event = Event::factory()->for($organizer, 'organizer')->draft()->create(['location' => '']);
+
+        $response = $this->actingAsApprovedOrganizer($organizer)
+            ->postJson("/api/admin/v1/organizer/events/{$event->id}/status", ['status' => 'published']);
+
+        $response->assertStatus(422);
+        $response->assertJsonFragment(['error' => 'missing_required_fields']);
+        $response->assertJsonFragment(['missingFields' => ['location']]);
+    }
+
+    #[Test]
+    #[TestDox('GIVEN organizer A WHEN attempting to delete organizer B\'s event THEN the response is 403')]
+    public function it_denies_deleting_another_organizers_event(): void
+    {
+        $organizerA = Organizer::factory()->approved()->create();
+        $organizerB = Organizer::factory()->approved()->create();
+        $event = Event::factory()->for($organizerB, 'organizer')->create();
+
+        $response = $this->actingAsApprovedOrganizer($organizerA)
+            ->deleteJson("/api/admin/v1/organizer/events/{$event->id}");
+
+        $response->assertForbidden();
+        $this->assertDatabaseHas('events', ['id' => $event->id]);
+    }
+
+    #[Test]
+    #[TestDox('GIVEN organizer A WHEN attempting to duplicate organizer B\'s event THEN the response is 403')]
+    public function it_denies_duplicating_another_organizers_event(): void
+    {
+        $organizerA = Organizer::factory()->approved()->create();
+        $organizerB = Organizer::factory()->approved()->create();
+        $event = Event::factory()->for($organizerB, 'organizer')->create();
+
+        $response = $this->actingAsApprovedOrganizer($organizerA)
+            ->postJson("/api/admin/v1/organizer/events/{$event->id}/duplicate");
+
+        $response->assertForbidden();
+        $this->assertDatabaseCount('events', 1);
+    }
+
+    #[Test]
+    #[TestDox('GIVEN organizer A WHEN attempting to transition organizer B\'s event status THEN the response is 403')]
+    public function it_denies_transitioning_another_organizers_event_status(): void
+    {
+        $organizerA = Organizer::factory()->approved()->create();
+        $organizerB = Organizer::factory()->approved()->create();
+        $event = Event::factory()->for($organizerB, 'organizer')->draft()->create();
+
+        $response = $this->actingAsApprovedOrganizer($organizerA)
+            ->postJson("/api/admin/v1/organizer/events/{$event->id}/status", ['status' => 'published']);
+
+        $response->assertForbidden();
+        $this->assertSame('draft', $event->fresh()->status->value);
+    }
+
+    #[Test]
     #[TestDox('GIVEN an organizer deletes their own event WHEN removed THEN it no longer exists')]
     public function it_deletes_an_organizers_own_event(): void
     {
@@ -106,13 +208,43 @@ class EventControllerTest extends TestCase
     public function it_duplicates_an_organizers_own_event(): void
     {
         $organizer = Organizer::factory()->approved()->create();
-        $event = Event::factory()->for($organizer, 'organizer')->published()->create(['title' => 'Original']);
+        $venue = Venue::factory()->for($organizer)->create();
+        $event = Event::factory()->for($organizer, 'organizer')->for($venue)->published()->create([
+            'title' => 'Original',
+            'description' => 'Original description',
+            'location' => 'Original location',
+            'full_address' => 'Original address',
+            'featured_image_url' => 'https://example.com/original.jpg',
+            'external_ticket_link' => 'https://example.com/original-tickets',
+            'music_category' => 'Jazz',
+            'capacity' => 100,
+            'age_range' => '18+',
+            'additional_info' => 'Bring ID',
+            'accessibility_info' => 'Wheelchair accessible',
+            'event_rules' => 'No smoking',
+        ]);
 
         $response = $this->actingAsApprovedOrganizer($organizer)
             ->postJson("/api/admin/v1/organizer/events/{$event->id}/duplicate");
 
         $response->assertCreated();
-        $response->assertJsonFragment(['title' => 'Original', 'status' => 'draft']);
+        $response->assertJsonFragment([
+            'venueId' => $venue->id,
+            'title' => 'Original',
+            'description' => 'Original description',
+            'location' => 'Original location',
+            'fullAddress' => 'Original address',
+            'featuredImageUrl' => 'https://example.com/original.jpg',
+            'externalTicketLink' => 'https://example.com/original-tickets',
+            'musicCategory' => 'Jazz',
+            'capacity' => 100,
+            'ageRange' => '18+',
+            'additionalInfo' => 'Bring ID',
+            'accessibilityInfo' => 'Wheelchair accessible',
+            'eventRules' => 'No smoking',
+            'status' => 'draft',
+            'publishedAt' => null,
+        ]);
         $this->assertDatabaseCount('events', 2);
     }
 
