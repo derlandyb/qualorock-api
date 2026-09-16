@@ -1,5 +1,7 @@
 <?php
 
+use App\Infrastructure\Persistence\Eloquent\Organizer;
+use App\Infrastructure\Persistence\Eloquent\SuperAdmin;
 use App\Models\User;
 
 return [
@@ -42,6 +44,19 @@ return [
             'driver' => 'session',
             'provider' => 'users',
         ],
+
+        // Kept distinct from the consumer `web` guard above so an
+        // organizer/super_admin session can never be confused with a
+        // consumer account.
+        'organizer' => [
+            'driver' => 'session',
+            'provider' => 'organizers',
+        ],
+
+        'super_admin' => [
+            'driver' => 'session',
+            'provider' => 'super_admins',
+        ],
     ],
 
     /*
@@ -65,6 +80,16 @@ return [
         'users' => [
             'driver' => 'eloquent',
             'model' => env('AUTH_MODEL', User::class),
+        ],
+
+        'organizers' => [
+            'driver' => 'eloquent',
+            'model' => Organizer::class,
+        ],
+
+        'super_admins' => [
+            'driver' => 'eloquent',
+            'model' => SuperAdmin::class,
         ],
 
         // 'users' => [
