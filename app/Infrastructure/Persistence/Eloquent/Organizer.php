@@ -4,8 +4,10 @@ namespace App\Infrastructure\Persistence\Eloquent;
 
 use App\Domain\Enums\OrganizerApprovalState;
 use App\Domain\Enums\PlanTier;
+use Database\Factories\OrganizerFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 
@@ -13,7 +15,12 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 #[Hidden(['password_hash'])]
 class Organizer extends Authenticatable
 {
-    use SoftDeletes;
+    use HasFactory, SoftDeletes;
+
+    protected static function newFactory(): OrganizerFactory
+    {
+        return OrganizerFactory::new();
+    }
 
     protected function casts(): array
     {
