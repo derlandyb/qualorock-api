@@ -47,8 +47,8 @@ class GenerateOrganizerDataExportJobTest extends TestCase
         $exportRequest->refresh();
         $this->assertSame(DataExportRequestStatus::Ready, $exportRequest->status);
         $this->assertNotNull($exportRequest->download_url);
-        $path = AdminPanelConstants::DATA_EXPORT_STORAGE_DIRECTORY."/{$exportRequest->id}.json";
-        Storage::disk('s3')->assertExists($path);
+        $files = Storage::disk('s3')->files(AdminPanelConstants::DATA_EXPORT_STORAGE_DIRECTORY);
+        $this->assertCount(1, $files);
     }
 
     #[Test]
@@ -74,8 +74,8 @@ class GenerateOrganizerDataExportJobTest extends TestCase
             app(DataExportRequestRepositoryInterface::class),
         );
 
-        $path = AdminPanelConstants::DATA_EXPORT_STORAGE_DIRECTORY."/{$exportRequest->id}.json";
-        $archive = json_decode(Storage::disk('s3')->get($path), true);
+        $files = Storage::disk('s3')->files(AdminPanelConstants::DATA_EXPORT_STORAGE_DIRECTORY);
+        $archive = json_decode(Storage::disk('s3')->get($files[0]), true);
 
         $this->assertSame('Own Venue', $archive['venue']['name']);
         $this->assertCount(1, $archive['events']);

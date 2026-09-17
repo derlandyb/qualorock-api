@@ -17,4 +17,6 @@ final class AdminPanelConstants
     public const int PLAN_PRICE_MAX_CENTS = 100_000_00;
 
     public const string DATA_EXPORT_STORAGE_DIRECTORY = 'organizer-exports';
+
+    public const int DATA_EXPORT_DOWNLOAD_URL_TTL_MINUTES = 15;
 }

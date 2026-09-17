@@ -50,12 +50,15 @@ class GenerateOrganizerDataExportJob implements ShouldQueue
                 'promoters' => array_map($this->promoterToArray(...), $promoters->findByOrganizerId($this->organizerId)),
             ];
 
-            $path = AdminPanelConstants::DATA_EXPORT_STORAGE_DIRECTORY."/{$this->dataExportRequestId}.json";
+            $path = AdminPanelConstants::DATA_EXPORT_STORAGE_DIRECTORY.'/'.bin2hex(random_bytes(16)).'.json';
             Storage::disk('s3')->put($path, json_encode($archive, JSON_PRETTY_PRINT | JSON_THROW_ON_ERROR));
 
             $dataExportRequests->update($this->dataExportRequestId, [
                 'status' => DataExportRequestStatus::Ready,
-                'download_url' => Storage::disk('s3')->url($path),
+                'download_url' => Storage::disk('s3')->temporaryUrl(
+                    $path,
+                    now()->addMinutes(AdminPanelConstants::DATA_EXPORT_DOWNLOAD_URL_TTL_MINUTES),
+                ),
             ]);
         } catch (Throwable $exception) {
             $dataExportRequests->update($this->dataExportRequestId, [
