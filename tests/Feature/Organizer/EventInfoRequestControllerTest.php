@@ -39,6 +39,23 @@ class EventInfoRequestControllerTest extends TestCase
     }
 
     #[Test]
+    #[TestDox('GIVEN two of the organizer\'s events with their own info requests WHEN listing one event\'s requests THEN the other event\'s requests are excluded')]
+    public function it_scopes_the_list_to_only_the_requested_event(): void
+    {
+        $organizer = Organizer::factory()->approved()->create();
+        $eventOne = Event::factory()->for($organizer, 'organizer')->create();
+        $eventTwo = Event::factory()->for($organizer, 'organizer')->create();
+        EventInfoRequest::factory()->for($eventOne)->create();
+        $otherEventRequest = EventInfoRequest::factory()->for($eventTwo)->create();
+
+        $response = $this->actingAsApprovedOrganizer($organizer)
+            ->getJson("/api/admin/v1/organizer/events/{$eventOne->id}/info-requests");
+
+        $response->assertOk();
+        $response->assertJsonMissing(['id' => $otherEventRequest->id]);
+    }
+
+    #[Test]
     #[TestDox('GIVEN organizer A\'s event WHEN organizer B attempts to list its info requests THEN the response is 403')]
     public function it_denies_listing_info_requests_for_another_organizers_event(): void
     {
