@@ -2,6 +2,7 @@
 
 namespace App\Infrastructure\Persistence\Eloquent;
 
+use App\Domain\Constants\AdminPanelConstants;
 use App\Domain\Contracts\OrganizerRepositoryInterface;
 use App\Domain\Entities\Organizer as OrganizerEntity;
 use App\Domain\Enums\OrganizerApprovalState;
@@ -55,6 +56,36 @@ class EloquentOrganizerRepository implements OrganizerRepositoryInterface
         return $this->toEntity($model);
     }
 
+    public function softDelete(int $id): void
+    {
+        Organizer::findOrFail($id)->delete();
+    }
+
+    public function findPendingPersonalDataPurge(int $retentionDays): array
+    {
+        return Organizer::onlyTrashed()
+            ->whereNull('personal_data_purged_at')
+            ->where('deleted_at', '<=', now()->subDays($retentionDays))
+            ->get()
+            ->map(fn (Organizer $model) => $this->toEntity($model))
+            ->all();
+    }
+
+    public function purgePersonalData(int $id): OrganizerEntity
+    {
+        $model = Organizer::withTrashed()->findOrFail($id);
+        $model->update([
+            'org_name' => AdminPanelConstants::PURGED_PERSONAL_DATA_PLACEHOLDER,
+            'contact_name' => AdminPanelConstants::PURGED_PERSONAL_DATA_PLACEHOLDER,
+            'email' => "deleted-organizer-{$id}@example.invalid",
+            'phone' => '',
+            'password_hash' => '',
+            'personal_data_purged_at' => now(),
+        ]);
+
+        return $this->toEntity($model);
+    }
+
     private function toEntity(Organizer $model): OrganizerEntity
     {
         return new OrganizerEntity(
@@ -68,6 +99,8 @@ class EloquentOrganizerRepository implements OrganizerRepositoryInterface
             approvalState: $model->approval_state,
             rejectionReason: $model->rejection_reason,
             consentGivenAt: $model->consent_given_at->toImmutable(),
+            deletedAt: $model->deleted_at?->toImmutable(),
+            personalDataPurgedAt: $model->personal_data_purged_at?->toImmutable(),
         );
     }
 }

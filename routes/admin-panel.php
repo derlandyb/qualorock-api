@@ -3,6 +3,7 @@
 use App\Presentation\Http\Controllers\Organizer\AuthController;
 use App\Presentation\Http\Controllers\Organizer\EventController;
 use App\Presentation\Http\Controllers\Organizer\EventInfoRequestController;
+use App\Presentation\Http\Controllers\Organizer\OrganizerDataController;
 use App\Presentation\Http\Controllers\Organizer\PromoterController;
 use App\Presentation\Http\Controllers\Organizer\VenueController;
 use App\Presentation\Http\Controllers\SuperAdmin\OrganizerApprovalController;
@@ -16,6 +17,8 @@ Route::prefix('super-admin')->group(function (): void {
 
     Route::get('plan-prices', [PlanPricingController::class, 'index']);
     Route::post('plan-prices', [PlanPricingController::class, 'store']);
+
+    Route::post('organizers/{organizer}/delete', [OrganizerDataController::class, 'superAdminDelete']);
 });
 
 Route::prefix('organizer')->group(function (): void {
@@ -42,5 +45,9 @@ Route::prefix('organizer')->group(function (): void {
         Route::delete('promoters/{promoter}', [PromoterController::class, 'destroy']);
         Route::post('promoters/{promoter}/events/{event}', [PromoterController::class, 'link']);
         Route::delete('promoters/{promoter}/events/{event}', [PromoterController::class, 'unlink']);
+
+        Route::post('data-export', [OrganizerDataController::class, 'export']);
+        Route::get('data-export/{dataExport}', [OrganizerDataController::class, 'showExport']);
+        Route::post('account/delete', [OrganizerDataController::class, 'delete']);
     });
 });

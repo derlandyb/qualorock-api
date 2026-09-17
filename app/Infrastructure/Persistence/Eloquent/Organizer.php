@@ -11,7 +11,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 
-#[Fillable(['org_name', 'contact_name', 'email', 'phone', 'password_hash', 'plan_tier', 'approval_state', 'rejection_reason', 'consent_given_at'])]
+#[Fillable(['org_name', 'contact_name', 'email', 'phone', 'password_hash', 'plan_tier', 'approval_state', 'rejection_reason', 'consent_given_at', 'personal_data_purged_at'])]
 #[Hidden(['password_hash'])]
 class Organizer extends Authenticatable
 {
@@ -29,6 +29,7 @@ class Organizer extends Authenticatable
             'approval_state' => OrganizerApprovalState::class,
             'consent_given_at' => 'datetime',
             'deleted_at' => 'datetime',
+            'personal_data_purged_at' => 'datetime',
         ];
     }
 
