@@ -15,4 +15,6 @@ final class AdminPanelConstants
     public const int BASIC_TIER_MONTHLY_PUBLISH_LIMIT = 4;
 
     public const int PLAN_PRICE_MAX_CENTS = 100_000_00;
+
+    public const string DATA_EXPORT_STORAGE_DIRECTORY = 'organizer-exports';
 }
