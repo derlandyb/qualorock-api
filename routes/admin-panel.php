@@ -2,6 +2,7 @@
 
 use App\Presentation\Http\Controllers\Organizer\AuthController;
 use App\Presentation\Http\Controllers\Organizer\EventController;
+use App\Presentation\Http\Controllers\Organizer\EventInfoRequestController;
 use App\Presentation\Http\Controllers\Organizer\PromoterController;
 use App\Presentation\Http\Controllers\Organizer\VenueController;
 use App\Presentation\Http\Controllers\SuperAdmin\OrganizerApprovalController;
@@ -23,6 +24,8 @@ Route::prefix('organizer')->group(function (): void {
         Route::delete('events/{event}', [EventController::class, 'destroy']);
         Route::post('events/{event}/status', [EventController::class, 'transitionStatus']);
         Route::get('events/{event}/promoters', [PromoterController::class, 'eventPromoters']);
+        Route::get('events/{event}/info-requests', [EventInfoRequestController::class, 'index']);
+        Route::post('info-requests/{infoRequest}/respond', [EventInfoRequestController::class, 'respond']);
 
         Route::get('venue', [VenueController::class, 'show']);
         Route::put('venue', [VenueController::class, 'update']);
