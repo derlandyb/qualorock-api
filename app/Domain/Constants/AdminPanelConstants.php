@@ -19,4 +19,8 @@ final class AdminPanelConstants
     public const string DATA_EXPORT_STORAGE_DIRECTORY = 'organizer-exports';
 
     public const int DATA_EXPORT_DOWNLOAD_URL_TTL_MINUTES = 15;
+
+    public const int DELETION_RETENTION_DAYS = 30;
+
+    public const string PURGED_PERSONAL_DATA_PLACEHOLDER = 'Removed for LGPD compliance';
 }

@@ -19,4 +19,13 @@ interface OrganizerRepositoryInterface
     public function create(Organizer $organizer): Organizer;
 
     public function update(int $id, array $attributes): Organizer;
+
+    public function softDelete(int $id): void;
+
+    /**
+     * @return array<int, Organizer>
+     */
+    public function findPendingPersonalDataPurge(int $retentionDays): array;
+
+    public function purgePersonalData(int $id): Organizer;
 }

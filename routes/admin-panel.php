@@ -17,6 +17,8 @@ Route::prefix('super-admin')->group(function (): void {
 
     Route::get('plan-prices', [PlanPricingController::class, 'index']);
     Route::post('plan-prices', [PlanPricingController::class, 'store']);
+
+    Route::post('organizers/{organizer}/delete', [OrganizerDataController::class, 'superAdminDelete']);
 });
 
 Route::prefix('organizer')->group(function (): void {
@@ -45,5 +47,6 @@ Route::prefix('organizer')->group(function (): void {
         Route::delete('promoters/{promoter}/events/{event}', [PromoterController::class, 'unlink']);
 
         Route::post('data-export', [OrganizerDataController::class, 'export']);
+        Route::post('account/delete', [OrganizerDataController::class, 'delete']);
     });
 });

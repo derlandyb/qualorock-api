@@ -21,4 +21,9 @@ class SuperAdminOrganizerPolicy
     {
         return $user instanceof SuperAdmin;
     }
+
+    public function delete(?Authenticatable $user): bool
+    {
+        return $user instanceof SuperAdmin;
+    }
 }

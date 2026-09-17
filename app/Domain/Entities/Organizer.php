@@ -19,5 +19,7 @@ final class Organizer
         public readonly OrganizerApprovalState $approvalState,
         public readonly ?string $rejectionReason,
         public readonly DateTimeImmutable $consentGivenAt,
+        public readonly ?DateTimeImmutable $deletedAt = null,
+        public readonly ?DateTimeImmutable $personalDataPurgedAt = null,
     ) {}
 }
