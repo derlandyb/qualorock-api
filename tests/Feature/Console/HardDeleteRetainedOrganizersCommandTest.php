@@ -3,8 +3,11 @@
 namespace Tests\Feature\Console;
 
 use App\Domain\Constants\AdminPanelConstants;
+use App\Domain\Enums\DataExportRequestStatus;
+use App\Infrastructure\Persistence\Eloquent\DataExportRequest;
 use App\Infrastructure\Persistence\Eloquent\Organizer;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Storage;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\Attributes\TestDox;
 use Tests\TestCase;
@@ -45,6 +48,27 @@ class HardDeleteRetainedOrganizersCommandTest extends TestCase
         $organizer->refresh();
         $this->assertSame('Acme Events', $organizer->org_name);
         $this->assertNull($organizer->personal_data_purged_at);
+    }
+
+    #[Test]
+    #[TestDox('GIVEN an organizer with a ready data export WHEN the purge command runs THEN the export archive is deleted')]
+    public function it_deletes_the_export_archive_past_the_retention_window(): void
+    {
+        Storage::fake('s3');
+        Storage::disk('s3')->put('organizer-exports/abc123.json', '{}');
+        $organizer = Organizer::factory()->approved()->create();
+        $exportRequest = DataExportRequest::factory()->for($organizer, 'organizer')->create([
+            'status' => DataExportRequestStatus::Ready,
+            'download_path' => 'organizer-exports/abc123.json',
+        ]);
+        $organizer->delete();
+        $organizer->forceFill(['deleted_at' => now()->subDays(31)])->save();
+
+        $this->artisan('organizers:purge-retained-data')->assertSuccessful();
+
+        Storage::disk('s3')->assertMissing('organizer-exports/abc123.json');
+        $exportRequest->refresh();
+        $this->assertNull($exportRequest->download_path);
     }
 
     #[Test]
