@@ -13,4 +13,6 @@ final class AdminPanelConstants
     public const string DEFAULT_ORGANIZER_TIMEZONE = 'America/Sao_Paulo';
 
     public const int BASIC_TIER_MONTHLY_PUBLISH_LIMIT = 4;
+
+    public const int PLAN_PRICE_MAX_CENTS = 100_000_00;
 }

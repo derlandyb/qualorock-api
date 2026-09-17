@@ -38,6 +38,7 @@ class EloquentPlanPriceRepository implements PlanPriceRepositoryInterface
     {
         return PlanPrice::where('tier', $tier->value)
             ->orderByDesc('effective_from')
+            ->orderByDesc('id')
             ->get()
             ->map($this->toEntity(...))
             ->all();
@@ -48,6 +49,7 @@ class EloquentPlanPriceRepository implements PlanPriceRepositoryInterface
         return DB::transaction(function () use ($planPrice): PlanPriceEntity {
             PlanPrice::where('tier', $planPrice->tier->value)
                 ->whereNull('effective_to')
+                ->lockForUpdate()
                 ->update(['effective_to' => $planPrice->effectiveFrom]);
 
             return $this->create($planPrice);

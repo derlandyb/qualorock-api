@@ -2,9 +2,11 @@
 
 namespace Tests\Feature\SuperAdmin;
 
+use App\Domain\Constants\AdminPanelConstants;
 use App\Infrastructure\Persistence\Eloquent\Organizer;
 use App\Infrastructure\Persistence\Eloquent\PlanPrice;
 use App\Infrastructure\Persistence\Eloquent\SuperAdmin;
+use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\Attributes\TestDox;
@@ -95,6 +97,20 @@ class PlanPricingControllerTest extends TestCase
     }
 
     #[Test]
+    #[TestDox('GIVEN an amount above the configured ceiling WHEN a super admin submits it THEN the response is 422')]
+    public function it_rejects_an_amount_above_the_maximum(): void
+    {
+        $superAdmin = SuperAdmin::factory()->create();
+
+        $response = $this->actingAs($superAdmin, 'super_admin')
+            ->postJson('/api/admin/v1/super-admin/plan-prices', [
+                'amount' => AdminPanelConstants::PLAN_PRICE_MAX_CENTS + 1,
+            ]);
+
+        $response->assertStatus(422);
+    }
+
+    #[Test]
     #[TestDox('GIVEN an organizer, not a super admin, WHEN calling either plan-pricing endpoint THEN the response is 403')]
     public function it_denies_a_non_super_admin(): void
     {
@@ -107,5 +123,26 @@ class PlanPricingControllerTest extends TestCase
         $response = $this->actingAs($organizer, 'organizer')
             ->postJson('/api/admin/v1/super-admin/plan-prices', ['amount' => 2990]);
         $response->assertForbidden();
+    }
+
+    #[Test]
+    #[TestDox('GIVEN an unauthenticated guest WHEN calling either plan-pricing endpoint THEN the response is 403')]
+    public function it_denies_an_unauthenticated_guest(): void
+    {
+        PlanPrice::factory()->create();
+
+        $this->getJson('/api/admin/v1/super-admin/plan-prices')->assertForbidden();
+        $this->postJson('/api/admin/v1/super-admin/plan-prices', ['amount' => 2990])->assertForbidden();
+    }
+
+    #[Test]
+    #[TestDox('GIVEN two open rows already exist for a tier WHEN a super admin reads history THEN the DB constraint has prevented that state')]
+    public function it_enforces_at_most_one_open_row_per_tier_at_the_database_level(): void
+    {
+        PlanPrice::factory()->create(['effective_to' => null]);
+
+        $this->expectException(QueryException::class);
+
+        PlanPrice::factory()->create(['effective_to' => null]);
     }
 }
