@@ -6,12 +6,16 @@ use App\Presentation\Http\Controllers\Organizer\EventInfoRequestController;
 use App\Presentation\Http\Controllers\Organizer\PromoterController;
 use App\Presentation\Http\Controllers\Organizer\VenueController;
 use App\Presentation\Http\Controllers\SuperAdmin\OrganizerApprovalController;
+use App\Presentation\Http\Controllers\SuperAdmin\PlanPricingController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('super-admin')->group(function (): void {
     Route::get('organizers', [OrganizerApprovalController::class, 'index']);
     Route::post('organizers/{organizer}/approve', [OrganizerApprovalController::class, 'approve']);
     Route::post('organizers/{organizer}/reject', [OrganizerApprovalController::class, 'reject']);
+
+    Route::get('plan-prices', [PlanPricingController::class, 'index']);
+    Route::post('plan-prices', [PlanPricingController::class, 'store']);
 });
 
 Route::prefix('organizer')->group(function (): void {
