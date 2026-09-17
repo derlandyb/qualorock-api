@@ -46,9 +46,62 @@ class GenerateOrganizerDataExportJobTest extends TestCase
 
         $exportRequest->refresh();
         $this->assertSame(DataExportRequestStatus::Ready, $exportRequest->status);
-        $this->assertNotNull($exportRequest->download_url);
+        $this->assertNotNull($exportRequest->download_path);
         $files = Storage::disk('s3')->files(AdminPanelConstants::DATA_EXPORT_STORAGE_DIRECTORY);
         $this->assertCount(1, $files);
+        $this->assertSame($files[0], $exportRequest->download_path);
+    }
+
+    #[Test]
+    #[TestDox('GIVEN a completed export WHEN inspecting the stored archive path THEN it uses an unguessable key, not the request id')]
+    public function it_stores_the_archive_under_an_unguessable_key(): void
+    {
+        Storage::fake('s3');
+        $organizer = Organizer::factory()->approved()->create();
+        Venue::factory()->for($organizer, 'organizer')->create();
+        $exportRequest = DataExportRequest::factory()->for($organizer, 'organizer')->create();
+
+        (new GenerateOrganizerDataExportJob($organizer->id, $exportRequest->id))->handle(
+            app(OrganizerRepositoryInterface::class),
+            app(VenueRepositoryInterface::class),
+            app(EventRepositoryInterface::class),
+            app(PromoterRepositoryInterface::class),
+            app(DataExportRequestRepositoryInterface::class),
+        );
+
+        $exportRequest->refresh();
+        $filename = basename($exportRequest->download_path);
+
+        $this->assertMatchesRegularExpression('/^[0-9a-f]{32}\.json$/', $filename);
+        $this->assertNotSame("{$exportRequest->id}.json", $filename);
+    }
+
+    #[Test]
+    #[TestDox('GIVEN the s3 write fails WHEN the export job runs THEN the request is marked failed and no download path is stored')]
+    public function it_marks_the_request_failed_when_the_upload_fails(): void
+    {
+        Storage::shouldReceive('disk')->with('s3')->andReturnSelf();
+        Storage::shouldReceive('put')->once()->andReturn(false);
+
+        $organizer = Organizer::factory()->approved()->create();
+        Venue::factory()->for($organizer, 'organizer')->create();
+        $exportRequest = DataExportRequest::factory()->for($organizer, 'organizer')->create();
+
+        $this->expectException(\RuntimeException::class);
+
+        try {
+            (new GenerateOrganizerDataExportJob($organizer->id, $exportRequest->id))->handle(
+                app(OrganizerRepositoryInterface::class),
+                app(VenueRepositoryInterface::class),
+                app(EventRepositoryInterface::class),
+                app(PromoterRepositoryInterface::class),
+                app(DataExportRequestRepositoryInterface::class),
+            );
+        } finally {
+            $exportRequest->refresh();
+            $this->assertSame(DataExportRequestStatus::Failed, $exportRequest->status);
+            $this->assertNull($exportRequest->download_path);
+        }
     }
 
     #[Test]

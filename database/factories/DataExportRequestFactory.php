@@ -22,7 +22,7 @@ class DataExportRequestFactory extends Factory
         return [
             'organizer_id' => Organizer::factory(),
             'status' => DataExportRequestStatus::Pending,
-            'download_url' => null,
+            'download_path' => null,
             'requested_at' => now(),
         ];
     }

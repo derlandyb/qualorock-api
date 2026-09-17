@@ -11,7 +11,7 @@ final class DataExportRequest
         public readonly ?int $id,
         public readonly int $organizerId,
         public readonly DataExportRequestStatus $status,
-        public readonly ?string $downloadUrl,
+        public readonly ?string $downloadPath,
         public readonly DateTimeImmutable $requestedAt,
     ) {}
 }

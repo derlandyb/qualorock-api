@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-#[Fillable(['organizer_id', 'status', 'download_url', 'requested_at'])]
+#[Fillable(['organizer_id', 'status', 'download_path', 'requested_at'])]
 class DataExportRequest extends Model
 {
     use HasFactory;

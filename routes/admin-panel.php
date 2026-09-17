@@ -47,6 +47,7 @@ Route::prefix('organizer')->group(function (): void {
         Route::delete('promoters/{promoter}/events/{event}', [PromoterController::class, 'unlink']);
 
         Route::post('data-export', [OrganizerDataController::class, 'export']);
+        Route::get('data-export/{dataExport}', [OrganizerDataController::class, 'showExport']);
         Route::post('account/delete', [OrganizerDataController::class, 'delete']);
     });
 });

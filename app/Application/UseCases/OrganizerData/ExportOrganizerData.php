@@ -20,7 +20,7 @@ class ExportOrganizerData
             id: null,
             organizerId: $organizerId,
             status: DataExportRequestStatus::Pending,
-            downloadUrl: null,
+            downloadPath: null,
             requestedAt: Carbon::now()->toImmutable(),
         ));
 
