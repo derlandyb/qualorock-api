@@ -36,6 +36,8 @@ class PlanPricingControllerTest extends TestCase
         $response->assertJsonCount(2, 'data');
         $response->assertJsonFragment(['id' => $current->id, 'amount' => 2990, 'effectiveTo' => null]);
         $response->assertJsonFragment(['id' => $previous->id, 'amount' => 1990]);
+        $ids = array_column($response->json('data'), 'id');
+        $this->assertSame([$current->id, $previous->id], $ids);
     }
 
     #[Test]
@@ -51,6 +53,31 @@ class PlanPricingControllerTest extends TestCase
         $response->assertCreated();
         $response->assertJsonFragment(['amount' => 2990, 'effectiveTo' => null]);
         $this->assertNotNull($previous->fresh()->effective_to);
+    }
+
+    #[Test]
+    #[TestDox('GIVEN an already-closed historical row WHEN a super admin sets a new price THEN that older row is left untouched')]
+    public function it_leaves_already_closed_historical_rows_untouched_when_setting_a_new_price(): void
+    {
+        $superAdmin = SuperAdmin::factory()->create();
+        $closedAt = now()->subMonths(2)->startOfSecond();
+        $olderClosed = PlanPrice::factory()->create([
+            'amount' => 990,
+            'effective_from' => now()->subMonths(3),
+            'effective_to' => $closedAt,
+        ]);
+        $current = PlanPrice::factory()->create([
+            'amount' => 1990,
+            'effective_from' => $closedAt,
+            'effective_to' => null,
+        ]);
+
+        $this->actingAs($superAdmin, 'super_admin')
+            ->postJson('/api/admin/v1/super-admin/plan-prices', ['amount' => 2990])
+            ->assertCreated();
+
+        $this->assertTrue($olderClosed->fresh()->effective_to->equalTo($closedAt));
+        $this->assertNotNull($current->fresh()->effective_to);
     }
 
     #[Test]
