@@ -7,6 +7,7 @@ use App\Application\UseCases\Event\DeleteEvent;
 use App\Application\UseCases\Event\DuplicateEvent;
 use App\Application\UseCases\Event\TransitionEventStatus;
 use App\Application\UseCases\Event\UpdateEvent;
+use App\Domain\Contracts\EventRepositoryInterface;
 use App\Domain\Entities\Event;
 use App\Domain\Exceptions\BasicTierPublishCapExceededException;
 use App\Domain\Exceptions\EventMissingRequiredFieldsForPublishException;
@@ -18,16 +19,25 @@ use App\Presentation\Http\Requests\Organizer\DuplicateEventRequest;
 use App\Presentation\Http\Requests\Organizer\TransitionEventStatusRequest;
 use App\Presentation\Http\Requests\Organizer\UpdateEventRequest;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 
 class EventController extends Controller
 {
     public function __construct(
+        private readonly EventRepositoryInterface $events,
         private readonly CreateEvent $createEvent,
         private readonly UpdateEvent $updateEvent,
         private readonly DeleteEvent $deleteEvent,
         private readonly DuplicateEvent $duplicateEvent,
         private readonly TransitionEventStatus $transitionEventStatus,
     ) {}
+
+    public function index(Request $request): JsonResponse
+    {
+        $events = $this->events->findByOrganizerId((int) $request->user('organizer')->id);
+
+        return response()->json(['data' => array_map($this->toResponse(...), $events)]);
+    }
 
     public function store(CreateEventRequest $request): JsonResponse
     {
