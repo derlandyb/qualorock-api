@@ -27,6 +27,23 @@ class EventControllerTest extends TestCase
     }
 
     #[Test]
+    #[TestDox('GIVEN an organizer with events WHEN listing THEN only that organizer\'s events return')]
+    public function it_lists_only_the_organizers_own_events(): void
+    {
+        $organizerA = Organizer::factory()->approved()->create();
+        $organizerB = Organizer::factory()->approved()->create();
+        $eventA = Event::factory()->for($organizerA, 'organizer')->create(['title' => 'Event A']);
+        Event::factory()->for($organizerB, 'organizer')->create(['title' => 'Event B']);
+
+        $response = $this->actingAsApprovedOrganizer($organizerA)
+            ->getJson('/api/admin/v1/organizer/events');
+
+        $response->assertOk();
+        $response->assertJsonCount(1, 'data');
+        $response->assertJsonFragment(['id' => $eventA->id, 'title' => 'Event A']);
+    }
+
+    #[Test]
     #[TestDox('GIVEN all required fields WHEN creating an event THEN it saves as draft')]
     public function it_creates_an_event_as_draft(): void
     {

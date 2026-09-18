@@ -25,6 +25,7 @@ Route::prefix('organizer')->group(function (): void {
     Route::post('login', [AuthController::class, 'login']);
 
     Route::middleware(['auth:organizer', 'organizer.approved'])->group(function (): void {
+        Route::get('events', [EventController::class, 'index']);
         Route::post('events', [EventController::class, 'store']);
         Route::put('events/{event}', [EventController::class, 'update']);
         Route::post('events/{event}/duplicate', [EventController::class, 'duplicate']);
