@@ -1,6 +1,7 @@
 <?php
 
 use App\Presentation\Http\Controllers\Organizer\AuthController;
+use App\Presentation\Http\Controllers\Organizer\EngagementDashboardController;
 use App\Presentation\Http\Controllers\Organizer\EventController;
 use App\Presentation\Http\Controllers\Organizer\EventInfoRequestController;
 use App\Presentation\Http\Controllers\Organizer\OrganizerDataController;
@@ -34,6 +35,8 @@ Route::prefix('organizer')->group(function (): void {
         Route::get('events/{event}/promoters', [PromoterController::class, 'eventPromoters']);
         Route::get('events/{event}/info-requests', [EventInfoRequestController::class, 'index']);
         Route::post('info-requests/{infoRequest}/respond', [EventInfoRequestController::class, 'respond']);
+        Route::get('events/{event}/engagement', [EngagementDashboardController::class, 'show']);
+        Route::get('engagement', [EngagementDashboardController::class, 'summary']);
 
         Route::get('venue', [VenueController::class, 'show']);
         Route::put('venue', [VenueController::class, 'update']);
